@@ -4,13 +4,14 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import Dict, Any
 from app.database import SessionLocal, Base, engine
+from app.config import APP_NAME, APP_VERSION, APP_DESCRIPTION, DOCS_URL, REDOC_URL, API_PREFIX
 
 app = FastAPI(
-    title="Electric Network API",
-    description="API for querying electric infrastructure dynamically.",
-    version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
+    title=APP_NAME,
+    description=APP_DESCRIPTION,
+    version=APP_VERSION,
+    docs_url=DOCS_URL,
+    redoc_url=REDOC_URL
 )
 
 # Create tables (if managed via SQLAlchemy)
@@ -32,7 +33,7 @@ def get_db():
         db.close()
 
 def register_dynamic_route(name: str, sql: str):
-    path = f"/api/custom/{name}"
+    path = f"{API_PREFIX}/custom/{name}"
 
     async def dynamic_handler(request: Request, db: Session = Depends(get_db)):
         params: Dict[str, Any] = dict(request.query_params)
@@ -53,7 +54,7 @@ def create_endpoint(req: EndpointRequest, db: Session = Depends(get_db)):
     return {"message": f"Dynamic GET endpoint created at /api/custom/{req.name}"}
 
 # Register router and root
-app.include_router(router, prefix="/api", tags=["Dynamic SQL"])
+app.include_router(router, prefix=API_PREFIX, tags=["Dynamic SQL"])
 
 @app.get("/")
 def root():
